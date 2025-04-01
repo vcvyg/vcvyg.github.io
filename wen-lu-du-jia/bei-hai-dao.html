@@ -276,89 +276,95 @@ overflow-x: hidden;
         </div>
       </div>
     </div>
-<div class="section_3 bdh">
-    <!-- 地图容器 -->
-    <div id="amap-container" style="width:100%;height:600px;"></div>
-
-    <!-- DNS预解析 -->
-    <link rel="preconnect" href="https://webapi.amap.com">
-
-    <script>
-        // 仅在当前页面需要时加载
-        (function initMap() {
-            // 性能优化配置
-            const config = {
-                key: '8ed01e5be1e266fd742646348802391e',    // 替换为你的key
-                version: '2.0',              // 指定稳定版本
-                features: ['AMap.Marker'],    // 按需加载的插件
-                lazyInit: true               // 延迟初始化
-            };
-
-            // 动态加载脚本
-            const loadScript = () => {
-                const timestamp = Date.now();
-                const script = document.createElement('script');
-                script.src = `https://webapi.amap.com/maps?v=${config.version}&key=${config.key}&plugin=${config.features.join(',')}&callback=onAMapLoaded&t=${timestamp}`;
-                script.async = true;
-                script.onerror = () => console.error('地图脚本加载失败');
-                document.head.appendChild(script);
-            };
-
-            // 延迟加载控制
-            if ('requestIdleCallback' in window) {
-                window.requestIdleCallback(loadScript, { timeout: 2000 });
-            } else {
-                setTimeout(loadScript, 500);
-            }
-        })();
-
-        // 带错误处理的回调函数
-        window.onAMapLoaded = function() {
-            if (!window.AMap) {
-                console.error('高德地图API未正确加载');
-                return;
-            }
-
-            // 延迟初始化直到容器可见
-            const observer = new IntersectionObserver((entries) => {
-                if (entries[0].isIntersecting) {
-                    initMap();
-                    observer.disconnect();
-                }
-            }, { threshold: 0.1 });
-
-            const container = document.getElementById('amap-container');
-            if (container) {
-                observer.observe(container);
-            }
-        };
-
-        // 核心初始化逻辑
-        function initMap() {
-            try {
-                const map = new AMap.Map('amap-container', {
-                    center: [113.545, 22.224],
-                    zoom: 15,
-                    resizeEnable: true,
-                    lazyLoad: true  // 启用地图瓦片延迟加载
-                });
-
-                // 按需创建标记
-                new AMap.Marker({
-                    position: map.getCenter(),
-                    map: map
-                });
-
-                // 内存管理
-                window.addEventListener('beforeunload', () => {
-                    map.destroy();
-                });
-            } catch (error) {
-                console.error('地图初始化失败:', error);
-            }
-        }
-    </script>
-</div>
+ <div class="custom-map-container">
+      <div id="amap-container" style="width:100%;height:100vh;"></div>
+      
+      <div class="map-controls">
+          <button class="control-btn locate-btn">定位</button>
+          <button class="control-btn layer-switch">图层</button>
+          <button class="control-btn 3d-toggle">3D开关</button>
+      </div>
+  
+      <link rel="preconnect" href="https://webapi.amap.com">
+      <script>
+          (function initMap() {
+              const AMAP_CONFIG = {
+                  key: '8ed01e5be1e266fd742646348802391e',
+                  plugins: [
+                      'AMap.ToolBar',
+                      'AMap.Scale',
+                      'AMap.Buildings'
+                  ],
+                  features: ['bg', 'road', 'building','point']
+              };
+  
+              const SZ_CENTER = [114.057868, 22.543099]; 
+  
+              const script = document.createElement('script');
+              script.src = `https://webapi.amap.com/maps?v=2.0&key=${AMAP_CONFIG.key}&plugin=${AMAP_CONFIG.plugins.join(',')}`;
+              script.async = true;
+              script.onload = initAMap;
+              document.head.appendChild(script);
+  
+              function initAMap() {
+                  const map = new AMap.Map('amap-container', {
+                      center: SZ_CENTER,
+                      zoom: 15,
+                      resizeEnable: true,
+                      viewMode: '2D',
+                      features: AMAP_CONFIG.features,
+                      mapStyle: 'amap://styles/1b3057e503a8b7fae11ab6f935e00b6c'
+                  });
+  
+                  // 仅保留建筑物可视化配置
+                  const buildings = new AMap.Buildings({
+                      zooms: [15, 18],
+                      heightFactor: 1,
+                      wallColor: '#B5B4B4', 
+                      roofColor: '#D3D1D1',
+                      // 添加悬停效果
+                      hoverable: true  
+                  });
+                  map.add(buildings);
+  
+                  // 添加建筑物悬停交互
+                  buildings.on('mouseover', (e) => {
+                      e.target.setOptions({
+                          fillColor: '#e6f3ff',
+                          strokeColor: '#4a90e2'
+                      });
+                  });
+  
+                  buildings.on('mouseout', (e) => {
+                      e.target.setOptions({
+                          fillColor: '#D3D1D1',
+                          strokeColor: '#B5B4B4'
+                      });
+                  });
+  
+                  // 3D切换控制
+                  document.querySelector('.3d-toggle').addEventListener('click', () => {
+                      map.setViewMode(map.getViewMode() === '2D' ? '3D' : '2D');
+                  });
+              }
+          })();
+      </script>
+  
+      <style>
+          /* 优化建筑显示效果 */
+          .amap-building-polygon {
+              stroke: #999 !important;
+              stroke-width: 1px !important;
+              transition: all 0.3s;
+          }
+          
+          /* 悬停高亮效果 */
+          .amap-building-polygon:hover {
+              filter: brightness(1.1);
+              stroke-width: 1.5px !important;
+          }
+      </style>
+  </div>
 
   <section id="footer" class="footer">
     <div class="footer_wrapper">
