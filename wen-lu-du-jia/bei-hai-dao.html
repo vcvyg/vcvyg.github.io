@@ -4,6 +4,7 @@
 <head>
   <meta charset="utf-8">
 <title>订房指南</title>
+<script type="text/javascript" src="https://webapi.amap.com/maps?v=2.0&key=c14114b30e022e1cdc318b21150e8eec" async defer></script>
 <meta content="了解订房指南，轻松预订您的理想住宿。我们为您提供详细的订房流程和贴心的服务支持，让您的旅行更加便捷舒适。" name="description">
 <meta content="订房指南" property="og:title">
 <meta content="了解订房指南，轻松预订您的理想住宿。我们为您提供详细的订房流程和贴心的服务支持，让您的旅行更加便捷舒适。" property="og:description">
@@ -276,23 +277,31 @@ overflow-x: hidden;
       </div>
     </div>
   <div class="section_3 bdh">
-    <div id="amap-container" style="width:100%;height:600px;"></div>
+        <div id="amap-container" style="width:100%;height:600px;"></div>
+    </div>
+
     <script>
-        // 创建高德地图实例
-        var map = new AMap.Map("amap-container", {
-            center: [113.545, 22.224], // 设置地图中心点
-            zoom: 15, // 设置地图级别
-        });
+        // 确保高德地图API加载完成后才执行地图初始化
+        window.onload = function () {
+            if (typeof AMap !== 'undefined') {
+                // 创建高德地图实例
+                var map = new AMap.Map("amap-container", {
+                    center: [113.545, 22.224], // 设置地图中心点
+                    zoom: 15, // 设置地图级别
+                });
 
-        // 创建标记
-        var marker = new AMap.Marker({
-            position: [113.545, 22.224], // 设置标记的位置
-        });
+                // 创建标记
+                var marker = new AMap.Marker({
+                    position: [113.545, 22.224], // 设置标记的位置
+                });
 
-        // 添加标记到地图
-        map.add(marker);
+                // 添加标记到地图
+                map.add(marker);
+            } else {
+                console.error("高德地图API加载失败！");
+            }
+        };
     </script>
-</div>
 
 
   <section id="footer" class="footer">
