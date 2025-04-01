@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8">
 <title>订房指南</title>
-<script type="text/javascript" src="https://webapi.amap.com/maps?v=2.0&key=c14114b30e022e1cdc318b21150e8eec" async defer></script>
+
 <meta content="了解订房指南，轻松预订您的理想住宿。我们为您提供详细的订房流程和贴心的服务支持，让您的旅行更加便捷舒适。" name="description">
 <meta content="订房指南" property="og:title">
 <meta content="了解订房指南，轻松预订您的理想住宿。我们为您提供详细的订房流程和贴心的服务支持，让您的旅行更加便捷舒适。" property="og:description">
@@ -276,40 +276,89 @@ overflow-x: hidden;
         </div>
       </div>
     </div>
-  <div class="section_3 bdh">
-        <div id="amap-container" style="width:100%;height:600px;"></div>
-    </div>
+<div class="section_3 bdh">
+    <!-- 地图容器 -->
+    <div id="amap-container" style="width:100%;height:600px;"></div>
+
+    <!-- DNS预解析 -->
+    <link rel="preconnect" href="https://webapi.amap.com">
 
     <script>
-        // 等待高德地图API加载完成
-        function initMap() {
-            if (window.AMap) {
-                // 创建高德地图实例
-                var map = new AMap.Map("amap-container", {
-                    center: [113.545, 22.224], // 设置地图中心点
-                    zoom: 15, // 设置地图级别
-                });
+        // 仅在当前页面需要时加载
+        (function initMap() {
+            // 性能优化配置
+            const config = {
+                key: '8ed01e5be1e266fd742646348802391e',    // 替换为你的key
+                version: '2.0',              // 指定稳定版本
+                features: ['AMap.Marker'],    // 按需加载的插件
+                lazyInit: true               // 延迟初始化
+            };
 
-                // 创建标记
-                var marker = new AMap.Marker({
-                    position: [113.545, 22.224], // 设置标记的位置
-                });
+            // 动态加载脚本
+            const loadScript = () => {
+                const timestamp = Date.now();
+                const script = document.createElement('script');
+                script.src = `https://webapi.amap.com/maps?v=${config.version}&key=${config.key}&plugin=${config.features.join(',')}&callback=onAMapLoaded&t=${timestamp}`;
+                script.async = true;
+                script.onerror = () => console.error('地图脚本加载失败');
+                document.head.appendChild(script);
+            };
 
-                // 添加标记到地图
-                map.add(marker);
+            // 延迟加载控制
+            if ('requestIdleCallback' in window) {
+                window.requestIdleCallback(loadScript, { timeout: 2000 });
             } else {
-                console.error("高德地图API加载失败！");
+                setTimeout(loadScript, 500);
+            }
+        })();
+
+        // 带错误处理的回调函数
+        window.onAMapLoaded = function() {
+            if (!window.AMap) {
+                console.error('高德地图API未正确加载');
+                return;
+            }
+
+            // 延迟初始化直到容器可见
+            const observer = new IntersectionObserver((entries) => {
+                if (entries[0].isIntersecting) {
+                    initMap();
+                    observer.disconnect();
+                }
+            }, { threshold: 0.1 });
+
+            const container = document.getElementById('amap-container');
+            if (container) {
+                observer.observe(container);
+            }
+        };
+
+        // 核心初始化逻辑
+        function initMap() {
+            try {
+                const map = new AMap.Map('amap-container', {
+                    center: [113.545, 22.224],
+                    zoom: 15,
+                    resizeEnable: true,
+                    lazyLoad: true  // 启用地图瓦片延迟加载
+                });
+
+                // 按需创建标记
+                new AMap.Marker({
+                    position: map.getCenter(),
+                    map: map
+                });
+
+                // 内存管理
+                window.addEventListener('beforeunload', () => {
+                    map.destroy();
+                });
+            } catch (error) {
+                console.error('地图初始化失败:', error);
             }
         }
-
-        // 确保高德地图API加载完毕后调用初始化函数
-        if (window.AMap) {
-            initMap();
-        } else {
-            document.addEventListener("AMapLoaded", initMap);
-        }
     </script>
-
+</div>
 
   <section id="footer" class="footer">
     <div class="footer_wrapper">
