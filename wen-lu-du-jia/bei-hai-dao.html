@@ -281,9 +281,9 @@ overflow-x: hidden;
     </div>
 
     <script>
-        // 确保高德地图API加载完成后才执行地图初始化
-        window.onload = function () {
-            if (typeof AMap !== 'undefined') {
+        // 等待高德地图API加载完成
+        function initMap() {
+            if (window.AMap) {
                 // 创建高德地图实例
                 var map = new AMap.Map("amap-container", {
                     center: [113.545, 22.224], // 设置地图中心点
@@ -300,7 +300,14 @@ overflow-x: hidden;
             } else {
                 console.error("高德地图API加载失败！");
             }
-        };
+        }
+
+        // 确保高德地图API加载完毕后调用初始化函数
+        if (window.AMap) {
+            initMap();
+        } else {
+            document.addEventListener("AMapLoaded", initMap);
+        }
     </script>
 
 
